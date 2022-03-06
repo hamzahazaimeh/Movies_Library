@@ -109,7 +109,7 @@ function trendingPageHandler(req, res) {
 function searchPageHandler(req, res) {
 
 
-    // link to query http://localhost:4000/search?Movie=Lord
+    
     const search = req.query.Movie;
     let result = [];
      axios.get(`https://api.themoviedb.org/3/search/movie?api_key=${APIKEY}&language=en-US&query=${search}&page=2`)
