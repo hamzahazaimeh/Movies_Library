@@ -27,6 +27,15 @@ Task12:
 -ceate .env and add the api key 
 
 
+Task13:
+
+-we make database
+-make end point to get all element and insert data 
+
+
+Task 14:
+we build end point to get , update , delete specific element from database
+
 
 
 ## Project Features
