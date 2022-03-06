@@ -16,13 +16,15 @@ dotenv.config();
 //Variabels
 const APIKEY = process.env.APIKEY;
 const PORT = process.env.PORT;
+const DATABASE_URL = process.env.DATABASE_URL;
+
+//
+const pg = require("pg");
+
+const client = new pg.Client(DATABASE_URL)
 
 
 
-
-app.listen(PORT, () => {
-    console.log(`Start ON ${PORT} `);
-    });
 
 
 
@@ -34,16 +36,25 @@ this.poster_path=poster_path;
 this.overview=overview;    
 }
 
-
+app.use(express.json());
 
 app.get('/',homePageHandler);
 app.get('/favorite',favoritePageHandler);
 app.get('/trending', trendingPageHandler);
 app.get('/search', searchPageHandler);
+app.post('/addMovie',addMovieHandler);
+app.get('/getMovies',getMoviesHandler)
 
-app.use('*',notFoundedHandler);
+
+
+
+
 //Make my server use errorhandler function 
 app.use(errorHandler);
+
+app.use('*',notFoundedHandler);
+
+
 
 
 
@@ -98,7 +109,7 @@ function trendingPageHandler(req, res) {
 function searchPageHandler(req, res) {
 
 
-    // link to query http://localhost:4000/search?Movie=Lord
+    
     const search = req.query.Movie;
     let result = [];
      axios.get(`https://api.themoviedb.org/3/search/movie?api_key=${APIKEY}&language=en-US&query=${search}&page=2`)
@@ -116,6 +127,33 @@ function searchPageHandler(req, res) {
 
 
 
+function addMovieHandler(req, res) {
+   // console.log(req.body);
+  
+    const new_movie = req.body;
+    const sql = `INSERT INTO NewMovie(release_date,title,poster_path,overview,my_comment) VALUES($1,$2,$3,$4,$5) RETURNING * `;
+ 
+    const values = [new_movie.release_date, new_movie.title, new_movie.poster_path, new_movie.overview,new_movie.my_comment];
+    client.query(sql, values).then((result) => {
+        res.status(201).json(result.rows);
+    }).catch(error => {
+        errorHandler(error, req, res);
+    });
+    
+}
+
+
+
+function getMoviesHandler(req,res) {
+    const sql = `SELECT * FROM NewMovie `;
+    client.query(sql).then((result) => {
+        res.status(201).json(result.rows);
+    }).catch(error => {
+        errorHandler(error, req, res);
+    });
+}
+
+
 
 
 
@@ -127,9 +165,18 @@ function errorHandler(error, req, res) {
     return res.status(404).send(err);
 }
 
+
+
 function notFoundedHandler(req,res){
   return res.status(404).send("not Found");
 }
 
 
+
+client.connect()
+.then(() =>{
+    app.listen(PORT, () => {
+        console.log(`Start ON ${PORT} `);
+        });
+});
 
