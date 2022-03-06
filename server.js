@@ -45,7 +45,9 @@ app.get('/search', searchPageHandler);
 app.post('/addMovie',addMovieHandler);
 app.get('/getMovies',getMoviesHandler)
 
-
+app.put("/updateMovie/:id",updateMovie);
+app.delete("/delete/:id",deleteMovie);
+app.get("/getMovie/:id",getMovie);
 
 
 
@@ -155,6 +157,64 @@ function getMoviesHandler(req,res) {
 
 
 
+///////// Task 14 - End point to update delete and get movie 
+
+
+function updateMovie (req, res) {
+    //get id from body
+    const id = req.params.id;
+    //get the data from body
+    const new_movie = req.body;
+    //statment for database 
+    const sqlstatment = `UPDATE NewMovie SET title=$1, release_date=$2, poster_Path=$3, overview=$4, comment=$5 WHERE id=$6 RETURNING *;`;
+      const values = [new_movie.title,new_movie.release_date,new_movie.poster_path,new_movie.overview,new_movie.comment,id];
+      client.query(sqlstatment, values).then((result) => {
+        return res.status(200).json(result.rows);
+    }).catch((error) => {
+        errorHandler(error, req, res);
+    })
+  
+  };
+  
+
+
+  function deleteMovie (req, res)  {
+       //get id from body
+    const id = req.params.id;
+  //statment for database
+    const sqlstatment = `DELETE FROM NewMovie WHERE id=$1;`
+    const values = [id];
+    client.query(sqlstatment, values).then(() => {
+      return res.status(204).json({})
+  }).catch(error => {
+      errorHandler(error, req, res);
+  })
+  };
+  
+
+  
+  function getMovie (req, res) {
+       //get id from body
+    let id = req.params.id;
+      //statment for database
+    const sqlstatment = `SELECT * FROM NewMovie WHERE id=$1;`;
+    const values = [id];
+  
+    client.query(sqlstatment, values).then((result) => {
+        return res.status(200).json(result.rows);
+    }).catch((error) => {
+        errorHandler(error, req, res)
+    })
+  };
+  
+
+
+
+
+function notFoundedHandler(req,res){
+    return res.status(404).send("not Found");
+  }
+
 
 
 function errorHandler(error, req, res) {
@@ -163,12 +223,6 @@ function errorHandler(error, req, res) {
         message: error
     }
     return res.status(404).send(err);
-}
-
-
-
-function notFoundedHandler(req,res){
-  return res.status(404).send("not Found");
 }
 
 
